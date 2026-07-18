@@ -1,8 +1,10 @@
 `timescale 1ns / 1ps
-module AES128(  
+module AES128#(parameter MODE = 1)( // MODE = 0/1 --> ECB/Counter 
     output valid_out,
     output [127:0] cipher_text,
+    output ready,
     input [127:0] key, message,
+    input [95:0] nonce,
     input clk,
     input valid_in,
     input start,
@@ -11,9 +13,18 @@ module AES128(
 
     wire stall;
     assign stall = ~start;
+    reg [31:0] counter;
+    always @(posedge clk) begin
+        if(~start) counter <= 32'h0;
+        else if(valid0 && MODE == 1) begin
+            counter <= counter + 1;
+        end
+    end
+
+
     // Stage 0: initial AddRoundKey 
     wire [127:0] m0, k0;
-    assign m0 = message^key;
+    assign m0 = (MODE==0?message : {nonce, counter}) ^ key;
     KeyEX k1gen(.key_in(key), .key_out(k0));
 
     wire valid0 = valid_in & start & key_valid;
@@ -106,6 +117,9 @@ module AES128(
     Latch lr_out(.clk(clk),.stall(stall),.key_in(128'd0),.text_in(m111),.valid_in(valid910),.key_out(),.text_out(m_out),.valid_out(valid_out_r),.m_in(mess_out10),.m_out(mess_out11));
 
     //  Outputs 
-    assign cipher_text = m_out;
+    assign cipher_text = MODE==0? m_out : (m_out ^ mess_out11);
     assign valid_out   = valid_out_r;
+    assign ready       = ~stall;
+
+
 endmodule
