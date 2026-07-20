@@ -48,3 +48,5 @@ Clock:           100MHz (PL) / 666MHz (PS)
 Results
 
 Hardware cipher output matched NIST expected output with 100% accuracy
+<img width="940" height="214" alt="image" src="https://github.com/user-attachments/assets/d08db406-e167-4253-b2a8-9327d0a4d12e" />
+
